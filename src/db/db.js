@@ -10,4 +10,13 @@ export const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
 });
 
+try {
+  await pool.query('SELECT 1');
+  console.log('✅ Database connected successfully!');
+} catch (err) {
+  console.error('❌ Failed to connect to the database.');
+  console.error('Error details:', err.message);
+  process.exit(1);
+}
+
 export const db = drizzle(pool);
