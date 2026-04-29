@@ -1,21 +1,28 @@
-import express from 'express';
+import express from "express";
+import http from "http";
+import { matchesRouter } from "./routes/matches.js";
+import { attachWebSocketServer } from "./ws/server.js";
 
-import { matchesRouter } from './routes/matches.js';
-
+const PORT = Number(process.env.PORT || 8000);
+const HOST = process.env.HOST || "0.0.0.0";
 const app = express();
-const PORT = 8000;
 
 // Use JSON middleware
 app.use(express.json());
-
+const server = http.createServer(app);
 // Root GET route
-app.get('/', (req, res) => {
-  res.send('Welcome to the Sports Dashboard!');
+app.get("/", (req, res) => {
+  res.send("Welcome to the Sports Dashboard!");
 });
 
-app.use('/matches', matchesRouter);
+app.use("/matches", matchesRouter);
 
+const { broadcastMatchCreated } = attachWebSocketServer(server);
+app.locals.broadcastMatchCreated = broadcastMatchCreated;
 // Start the server
-app.listen(PORT, () => {
-  console.log(`Server running at http://localhost:${PORT}`);
+server.listen(PORT, HOST, () => {
+  const baseURL =
+    HOST === "0.0.0.0" ? `http://localhost:${PORT}` : `http://${HOST}:${PORT}`;
+  console.log(`Server is running at ${baseURL}`);
+  console.log(`WebSocket is running at ${baseURL.replace("http", "ws")}/ws`);
 });

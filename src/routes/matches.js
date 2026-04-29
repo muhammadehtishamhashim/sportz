@@ -53,6 +53,10 @@ matchesRouter.post("/", async (req, res) => {
         status: getMatchStatus(startTime, endTime),
       })
       .returning();
+
+    if (req.app.locals.broadcastMatchCreated) {
+      req.app.locals.broadcastMatchCreated(result[0]);
+    }
     console.log("Insert result:", result);
     res.status(201).json({ data: result });
   } catch (e) {
