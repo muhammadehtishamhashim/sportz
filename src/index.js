@@ -2,6 +2,7 @@ import express from "express";
 import http from "http";
 import { matchesRouter } from "./routes/matches.js";
 import { attachWebSocketServer } from "./ws/server.js";
+import { securityMiddleware } from "./arcjet.js";
 
 const parsedPort = Number(process.env.PORT);
 const PORT =
@@ -18,6 +19,8 @@ const server = http.createServer(app);
 app.get("/", (req, res) => {
   res.send("Welcome to the Sports Dashboard!");
 });
+
+app.use(securityMiddleware());
 
 app.use("/matches", matchesRouter);
 

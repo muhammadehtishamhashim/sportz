@@ -1,4 +1,5 @@
 import { WebSocket, WebSocketServer } from "ws";
+import { wsArcjet } from "../arcjet";
 
 function sendJson(socket, payload) {
   if (socket.readyState !== WebSocket.OPEN) return;
@@ -13,12 +14,38 @@ function broadcast(wss, payload) {
 }
 export function attachWebSocketServer(server) {
   const wss = new WebSocketServer({
-    server,
-    path: "/ws",
+    noServer: true,
     maxPayload: 1024 * 1024,
   });
 
-  wss.on("connection", (socket) => {
+  server.on("upgrade", async (req, socket, head) => {
+    if (!req.url.startsWith("/ws")) return;
+
+    if (wsArcjet) {
+      try {
+        const decision = await wsArcjet.protect(req);
+        if (decision.isDenied()) {
+          const isRateLimit = decision.reason.isRateLimit();
+          const statusCode = isRateLimit ? 429 : 403;
+          const statusMessage = isRateLimit ? "Too Many Requests" : "Forbidden";
+          socket.write(`HTTP/1.1 ${statusCode} ${statusMessage}\r\nConnection: close\r\n\r\n`);
+          socket.destroy();
+          return;
+        }
+      } catch (e) {
+        console.error("WsError in server file", e);
+        socket.write("HTTP/1.1 500 Internal Server Error\r\nConnection: close\r\n\r\n");
+        socket.destroy();
+        return;
+      }
+    }
+
+    wss.handleUpgrade(req, socket, head, (ws) => {
+      wss.emit("connection", ws, req);
+    });
+  });
+
+  wss.on("connection", (socket, req) => {
     socket.isAlive = true;
     socket.on("pong", () => {
       socket.isAlive = true;
