@@ -37,12 +37,12 @@ export const RoutesMatchesDoc = () => {
           />
           <ExplanationBlock title="Adding a New Game">
             In simple words: <strong>"Add a new match!"</strong>
-            <p className="mt-2">When we create a new match, we do two things:
+            <div className="mt-2">When we create a new match, we do two things:
               <ol className="list-decimal ml-5 mt-2 space-y-1">
                 <li>We save it in the Database so it's there forever.</li>
                 <li>We press the <strong>Broadcast Button</strong> to tell everyone who is currently online: "Hey! A new game just started!"</li>
               </ol>
-            </p>
+            </div>
           </ExplanationBlock>
         </div>
 
